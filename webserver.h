@@ -72,8 +72,8 @@ public:
     int m_listenfd;
     int m_OPT_LINGER;
     int m_TRIGMode;
-    int m_LISTENTrigmode;
-    int m_CONNTrigmode;
+    int m_LISTENTrigmode; //监听socket触发方式
+    int m_CONNTrigmode;   //连接socket触发方式
 
     //定时器相关
     client_data *users_timer;

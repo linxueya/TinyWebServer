@@ -41,6 +41,7 @@ public:
 public:
     time_t expire;
     
+    /*传入断开连接函数指针*/
     void (* cb_func)(client_data *);
     client_data *user_data;
     util_timer *prev;

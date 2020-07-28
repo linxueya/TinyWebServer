@@ -142,15 +142,20 @@ void WebServer::eventListen()
     utils.addfd(m_epollfd, m_listenfd, false, m_LISTENTrigmode);
     http_conn::m_epollfd = m_epollfd;
 
+    /* 创建管道，注册pipefd[0]上的可读事件 */
+    /* 设置管道写端为非阻塞 */
+    /* 设置管道读端为ET非阻塞，并添加到epoll内核事件表 */
     ret = socketpair(PF_UNIX, SOCK_STREAM, 0, m_pipefd);
     assert(ret != -1);
     utils.setnonblocking(m_pipefd[1]);
     utils.addfd(m_epollfd, m_pipefd[0], false, 0);
 
+    /* 注册相关信号的捕捉函数 */
     utils.addsig(SIGPIPE, SIG_IGN);
     utils.addsig(SIGALRM, utils.sig_handler, false);
     utils.addsig(SIGTERM, utils.sig_handler, false);
 
+    /* 每隔TIMESLOT时间触发SIGALRM信号 */
     alarm(TIMESLOT);
 
     //工具类,信号和描述符基础操作
@@ -175,6 +180,7 @@ void WebServer::timer(int connfd, struct sockaddr_in client_address)
     utils.m_timer_lst.add_timer(timer);
 }
 
+//TODO: 为什么往后延迟
 //若有数据传输，则将定时器往后延迟3个单位
 //并对新的定时器在链表上的位置进行调整
 void WebServer::adjust_timer(util_timer *timer)
@@ -298,7 +304,7 @@ void WebServer::dealwithread(int sockfd)
             {
                 if (1 == users[sockfd].timer_flag)
                 {
-                    deal_timer(timer, sockfd);
+                    deal_timer(timer, sockfd); //TODO: 为什么删除此时timer
                     users[sockfd].timer_flag = 0;
                 }
                 users[sockfd].improv = 0;
@@ -388,6 +394,7 @@ void WebServer::eventLoop()
             break;
         }
 
+        //轮询文件描述符
         for (int i = 0; i < number; i++)
         {
             int sockfd = events[i].data.fd;
